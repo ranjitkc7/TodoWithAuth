@@ -1,14 +1,44 @@
-import { View, Text, TextInput, Image, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Image,
+  TouchableOpacity,
+  Alert,
+} from "react-native";
 import React, { useState } from "react";
 import "../global.css";
 import { useRouter } from "expo-router";
 import { Entypo } from "@expo/vector-icons";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebaseConfig";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showpassword, setShowpassword] = useState(false);
+  const [errors, setErrors] = useState({});
   const router = useRouter();
+
+  const handleLogIn = () => {
+    signInWithEmailAndPassword(auth, email, password)
+      .then((userCredential) => {
+        const user = userCredential.user;
+        if (user.emailVerified) {
+          Alert.alert("Logged in successfully!");
+          router.push("/todo");
+          setEmail("");
+          setPassword("");
+        } else {
+          setErrors("Please verify your email to continue.");
+          Alert.alert("Please verify your email to continue.");
+        }
+      })
+      .catch((error) => {
+        Alert.alert("Error", error.message);
+      });
+  };
+
   return (
     <View
       className="flex-1 items-center justify-start p-[1rem]
@@ -32,21 +62,23 @@ const LoginPage = () => {
           value={password}
           secureTextEntry={!showpassword}
           onChangeText={setPassword}
-          className="mt-2 p-2 text-[1.1rem] text-gray-800 w-full h-[3rem] bg-white border border-gray-200 rounded-md"
+          className="mt-1 p-2 text-[1.1rem] text-gray-800 w-full h-[3rem]
+           bg-white border border-gray-200 rounded-md"
         />
-        <TouchableOpacity className="absolute right-[1rem] top-[1rem]"
-          
+        <TouchableOpacity
+          className="absolute right-[1rem] top-[1rem]"
           activeOpacity={0.8}
           onPress={() => setShowpassword(!showpassword)}
         >
           {!showpassword ? (
-            <Entypo name="eye" color="black" size={25}  />
+            <Entypo name="eye" color="black" size={25} />
           ) : (
-            <Entypo name="eye-with-line" color="black"  size={20}/>
+            <Entypo name="eye-with-line" color="black" size={20} />
           )}
         </TouchableOpacity>
       </View>
       <TouchableOpacity
+        onPress={handleLogIn}
         activeOpacity={0.8}
         className="w-full h-[3rem] justify-center items-center
        bg-purple-600 mt-[1rem] rounded-md"
